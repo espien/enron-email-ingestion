@@ -14,10 +14,12 @@ class ProcessedEntryRepository(
 ) {
     @Transactional
     fun persistEntries(entries: List<ProcessedEntryEntity>) {
+        val batchSize = config.ingestionJob.batchSize()
+
         entries.forEachIndexed { index, entity ->
             entityManager.persist(entity)
 
-            if (index % config.ingestionJob.batchSize() == 0) {
+            if (index % batchSize == 0) {
                 entityManager.flush()
                 entityManager.clear()
             }

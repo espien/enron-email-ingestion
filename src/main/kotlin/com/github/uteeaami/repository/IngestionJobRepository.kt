@@ -21,24 +21,29 @@ class IngestionJobRepository(
 
     @Transactional
     fun tryStart(): Boolean {
+        val allowedStatuses =
+            listOf(IngestionStatusEntity.IDLE, IngestionStatusEntity.FINISHED, IngestionStatusEntity.FAILED)
+
         val updated =
             entityManager
                 .createQuery(
                     """
             update IngestionJobEntity ij
-            set ij.status = 'IN_PROGRESS',
+            set ij.status = :inProgress,
                 ij.startedAt = CURRENT_TIMESTAMP,
                 ij.finishedAt = null
             where ij.id = :id
               and (
-                   ij.status in ('IDLE','FINISHED','FAILED')
+                   ij.status in :allowedStatuses
                    or
-                   (ij.status = 'IN_PROGRESS'
+                   (ij.status = :inProgress
                     and ij.startedAt < :timeout)
               )
             """,
                 ).setParameter("id", config.ingestionJob.id())
                 .setParameter("timeout", OffsetDateTime.now().minusSeconds(config.ingestionJob.timeoutSeconds()))
+                .setParameter("inProgress", IngestionStatusEntity.IN_PROGRESS)
+                .setParameter("allowedStatuses", allowedStatuses)
                 .executeUpdate()
         return updated == 1
     }

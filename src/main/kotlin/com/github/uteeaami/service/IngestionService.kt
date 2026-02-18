@@ -76,7 +76,13 @@ class IngestionService(
         val processedEntries =
             processedEntryRepository.getTotalProcessedEntryNamesByNames(entryBySender.keys.toList())
 
-        val newEntries = entryBySender.filterKeys { it !in processedEntries }
+        val newEntries =
+            if (processedEntries.isEmpty()) {
+                entryBySender
+            } else {
+                entryBySender.filterKeys { it !in processedEntries }
+            }
+
         if (newEntries.isEmpty()) {
             logger.info { "No new entries to process in directory '$userDirectory'" }
             return
