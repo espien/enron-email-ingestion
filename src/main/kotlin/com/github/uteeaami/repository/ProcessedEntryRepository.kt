@@ -22,9 +22,6 @@ class ProcessedEntryRepository(
                 entityManager.clear()
             }
         }
-
-        entityManager.flush()
-        entityManager.clear()
     }
 
     fun getTotalProcessedEntries(): Long =
