@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enron-ingestion-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: enron-ingestion-service
+  template:
+    metadata:
+      labels:
+        app: enron-ingestion-service
+    spec:
+      containers:
+        - name: enron-ingestion-service
+          image: quarkus/enron-ingestion-service-jvm:latest
+          # Instead of pulling image, in this example
+          # we load a local image into the kind cluster
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: enron-ingestion-service-configmap
+
+          volumeMounts:
+            - mountPath: /tmp/enron_data
+              name: enron-data
+
+          livenessProbe:
+            httpGet:
+              path: /api/v1/q/health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+
+          readinessProbe:
+            httpGet:
+              path: /api/v1/q/health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+
+      volumes:
+        - name: enron-data
+          persistentVolumeClaim:
+            claimName: enron-data-pvc

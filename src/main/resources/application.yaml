@@ -1,0 +1,30 @@
+quarkus:
+  http:
+    root-path: "/api/v1"
+    test-port: 0
+  datasource:
+    devservices:
+      image-name: postgres:17-alpine
+  flyway:
+    migrate-at-start: true
+
+enron-ingestion-service:
+  ingestion-job:
+    id: "9359e5d1-e303-46b3-b7d8-0dce60ffa7f7"
+    timeout-seconds: 180
+  datasource:
+    path: src/main/resources/META-INF/resources/enron_mail_20150507.tar.gz
+
+# Datasource path and credentials come from k8s/enron-ingestion-service/eis-configmap.yaml
+# These aren't explicitly defined in 'dev' or 'global' profile so that Quarkus dev services can be used both in dev and test
+# to streamline the development and setup process.
+# For more info see: https://quarkus.io/guides/dev-services
+"%prod":
+  quarkus:
+    datasource:
+      db-kind: postgresql
+      jdbc:
+        acquisition-timeout: 20s
+    flyway:
+      connect-retries: 5
+      connect-retries-interval: 10s
