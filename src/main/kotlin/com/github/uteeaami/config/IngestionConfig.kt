@@ -20,6 +20,9 @@ interface IngestionConfig {
 
         @WithName("timeout-seconds")
         fun timeoutSeconds(): Long
+
+        @WithName("batch-size")
+        fun batchSize(): Int
     }
 
     interface DataSource {
