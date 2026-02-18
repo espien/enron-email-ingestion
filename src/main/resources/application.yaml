@@ -2,6 +2,9 @@ quarkus:
   http:
     root-path: "/api/v1"
     test-port: 0
+  hibernate-orm:
+    jdbc:
+      statement-batch-size: ${enron-ingestion-service.ingestion-job.batch-size}
   datasource:
     devservices:
       image-name: postgres:17-alpine
@@ -12,6 +15,7 @@ enron-ingestion-service:
   ingestion-job:
     id: "9359e5d1-e303-46b3-b7d8-0dce60ffa7f7"
     timeout-seconds: 180
+    batch-size: 30
   datasource:
     path: src/main/resources/META-INF/resources/enron_mail_20150507.tar.gz
 

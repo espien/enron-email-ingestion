@@ -1,5 +1,6 @@
 package com.github.uteeaami.repository
 
+import com.github.uteeaami.config.IngestionConfig
 import com.github.uteeaami.entity.ProcessedEntryEntity
 import com.github.uteeaami.model.TopSender
 import jakarta.enterprise.context.ApplicationScoped
@@ -9,10 +10,21 @@ import jakarta.transaction.Transactional
 @ApplicationScoped
 class ProcessedEntryRepository(
     private val entityManager: EntityManager,
+    private val config: IngestionConfig,
 ) {
     @Transactional
     fun persistEntries(entries: List<ProcessedEntryEntity>) {
-        entries.forEach { entityManager.persist(it) }
+        entries.forEachIndexed { index, entity ->
+            entityManager.persist(entity)
+
+            if (index % config.ingestionJob.batchSize() == 0) {
+                entityManager.flush()
+                entityManager.clear()
+            }
+        }
+
+        entityManager.flush()
+        entityManager.clear()
     }
 
     fun getTotalProcessedEntries(): Long =

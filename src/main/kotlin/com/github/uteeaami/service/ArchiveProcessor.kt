@@ -18,7 +18,7 @@ class ArchiveProcessor {
 
     fun process(
         datasetPath: String,
-        onUserProcessed: (userName: String, emailToSender: Map<String, String>) -> Unit,
+        onUserDirectoryProcessed: (userDirectory: String, entryBySender: Map<String, String>) -> Unit,
     ) {
         val file = File(datasetPath)
         if (!file.exists()) {
@@ -30,7 +30,7 @@ class ArchiveProcessor {
             TarArchiveInputStream(gzip).use { tar ->
 
                 var currentUserDirectory: String? = null
-                val emailBySender = mutableMapOf<String, String>()
+                val entryBySender = mutableMapOf<String, String>()
 
                 var entry = tar.nextEntry
                 while (entry != null) {
@@ -38,15 +38,15 @@ class ArchiveProcessor {
                         val entryUserDirectory = extractUserDirectory(entry.name)
 
                         if (currentUserDirectory != null && entryUserDirectory != currentUserDirectory) {
-                            onUserProcessed(currentUserDirectory, emailBySender)
-                            emailBySender.clear()
+                            onUserDirectoryProcessed(currentUserDirectory, entryBySender)
+                            entryBySender.clear()
                         }
 
                         currentUserDirectory = entryUserDirectory
 
                         val reader = tar.bufferedReader()
                         extractSender(reader)?.let { sender ->
-                            emailBySender[entry.name] = sender
+                            entryBySender[entry.name] = sender
                         }
                     }
 
@@ -54,7 +54,7 @@ class ArchiveProcessor {
                 }
 
                 currentUserDirectory?.let {
-                    onUserProcessed(it, emailBySender)
+                    onUserDirectoryProcessed(it, entryBySender)
                 }
             }
         }

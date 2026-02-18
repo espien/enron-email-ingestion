@@ -62,23 +62,23 @@ class IngestionService(
     fun topSenders(limit: Int = 10): List<Sender> = processedEntryRepository.getTopSenders(limit).map { it.toSender() }
 
     private fun runIngestion() {
-        archiveProcessor.process(config.dataSource.path()) { user, emailToSender ->
-            if (emailToSender.isNotEmpty()) {
-                processUserDirectory(user, emailToSender)
+        archiveProcessor.process(config.dataSource.path()) { userDirectory, entryBySender ->
+            if (entryBySender.isNotEmpty()) {
+                processUserDirectory(userDirectory, entryBySender)
             }
         }
     }
 
     fun processUserDirectory(
         userDirectory: String,
-        emailBySender: Map<String, String>,
+        entryBySender: Map<String, String>,
     ) {
         val processedEntries =
-            processedEntryRepository.getTotalProcessedEntryNamesByNames(emailBySender.keys.toList())
+            processedEntryRepository.getTotalProcessedEntryNamesByNames(entryBySender.keys.toList())
 
-        val newEntries = emailBySender.filterKeys { it !in processedEntries }
+        val newEntries = entryBySender.filterKeys { it !in processedEntries }
         if (newEntries.isEmpty()) {
-            logger.info { "No new entries to process for directory '$userDirectory'" }
+            logger.info { "No new entries to process in directory '$userDirectory'" }
             return
         }
 
