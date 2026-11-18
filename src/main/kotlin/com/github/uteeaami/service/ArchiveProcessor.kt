@@ -2,11 +2,11 @@ package com.github.uteeaami.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.NotFoundException
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import java.io.BufferedReader
 import java.io.File
+import java.io.FileNotFoundException
 
 private val logger = KotlinLogging.logger {}
 
@@ -23,7 +23,7 @@ class ArchiveProcessor {
         val file = File(datasetPath)
         if (!file.exists()) {
             logger.error { "File $datasetPath does not exist" }
-            throw NotFoundException("Dataset not found: $datasetPath")
+            throw FileNotFoundException("Dataset not found: $datasetPath")
         }
 
         GzipCompressorInputStream(file.inputStream()).use { gzip ->
